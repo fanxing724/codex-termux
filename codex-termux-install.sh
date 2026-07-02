@@ -722,6 +722,13 @@ uninstall_codex() {
     removed=$((removed + 1))
   fi
 
+  # {profile}.config.toml 清理 (v0.142.5+ 新增格式)
+  local CODEX_HOME_DIR
+  CODEX_HOME_DIR=$(dirname "$CODEX_CONFIG_TOML" 2>/dev/null || echo "$HOME/.codex")
+  for _pf in "$CODEX_HOME_DIR"/*.config.toml; do
+    [ -f "$_pf" ] && [ "$_pf" != "$CODEX_CONFIG_TOML" ] && rm -f "$_pf" && _log " ✗ Removed: $_pf" && removed=$((removed + 1)) || true
+  done
+
   if [ "$removed" = "0" ]; then
     _log "Nothing to clean. Codex CLI was not installed."
   else
