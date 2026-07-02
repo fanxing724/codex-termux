@@ -191,7 +191,19 @@ resolve_version() {
     local meta
     meta=$(curl -fsSL --retry 3 --retry-delay 2 \
       -H "Accept: application/vnd.github+json" \
-      "https://api.github.com/repos/${CODEX_REPO}/releases/latest" 2>/dev/null)
+      "https://api.github.com/repos/${CODEX_REPO}/releases/latest" 2>/dev/null) || true
+
+    # 检查返回内容是否为有效 JSON（防止人机验证等非 JSON 响应）
+    if ! echo "$meta" | grep -q '"tag_name"'; then
+      _err "GitHub API 返回了非预期内容（可能触发了人机检测）"
+      _logv "原始响应(前200字符): $(echo "$meta" | head -c 200)"
+      _log ""
+      _log "解决方案:"
+      _log "  1. 稍后再试 (API 可能临时限流)"
+      _log "  2. 手动指定版本:  $0 -t rust-v0.142.5 install"
+      _log "  3. 设置浏览器 Cookie 后重试"
+      exit 1
+    fi
 
     TAG=$(grep -m1 '"tag_name"' <<<"$meta" 2>/dev/null \
       | sed 's/.*"tag_name"[[:space:]]*:[[:space:]]*"//; s/"//; s/,$//')
