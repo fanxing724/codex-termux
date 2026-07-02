@@ -1,20 +1,19 @@
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Editor
-*.swp
-*.swo
-*~
-.vscode/
-.idea/
 
 # Backups
-*.bak
-*.orig
-
+# Editor
 # Secrets (NEVER commit)
-profiles.json
+# macOS
+*.bak
 *.key
+*.orig
+*.swo
+*.swp
+*~
+.AppleDouble
+.DS_Store
+.LSOverride
 .env
+.idea/
+.vscode/
+_fix3.py
+profiles.json
