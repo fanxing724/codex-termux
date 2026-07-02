@@ -1,5 +1,9 @@
 # Codex CLI Termux 安装 & 配置指南
 
+> ⚠️ **注意：Codex v0.142.5+ 已变更配置格式**
+> 本指南基于旧版编写，新版不再支持 `config.toml` 中的 `profile = "..."` 和 `[profiles.*]` 字段，
+> 改用 `--profile` 参数 + 独立 `{profile}.config.toml` 文件。自定义 API Provider 方案已受影响。
+
 > 编写: 2026-07-02 | 环境: Termux (aarch64) | Codex: rust-v0.142.5
 
 ---

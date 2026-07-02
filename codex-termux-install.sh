@@ -4,6 +4,11 @@
 # 提取/优化时间: 2026-07-01
 # 许可证: 原仓库许可证 (MIT/GPL 请参照原仓库)
 #
+# ⚠️  注意: Codex v0.142.5+ 已变更配置格式
+#    不再支持 config.toml 中的 profile = "..." 和 [profiles.*] 字段,
+#    改用 --profile 参数 + {profile}.config.toml 文件。
+#    自定义 API Provider 方案已受此影响, 本脚本仅供参考保留。
+#
 # 优化内容:
 #   1. 架构自动检测 (aarch64 / x86_64)
 #   2. 环境自适应 (Termux/Android vs 普通 Linux)

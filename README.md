@@ -1,5 +1,13 @@
 # Codex CLI Termux Installer
 
+> ⚠️ **注意：Codex 已更新配置格式 (v0.142.5+)**
+>
+> 新版 Codex 不再支持 `config.toml` 中的 `profile = "..."` 和 `[profiles.*]` 字段，
+> 改用 `--profile <name>` 参数 + 独立 `{profile}.config.toml` 文件。
+> 本项目原来自定义的 API Provider 注入方式已不完全兼容。
+>
+> 此仓库保留为存档参考，不再积极维护自定义 Provider 功能。
+
 > 一键安装 OpenAI Codex CLI 到 Termux / Android，支持自定义 API Provider 和交互式模型选择。
 >
 > Personal project — 自用为主，欢迎 fork 和 issue。
