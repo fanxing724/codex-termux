@@ -58,7 +58,7 @@ DOWNLOADED_CHECKSUM=""
 # ============================================================================
 
 _log()   { [ "$QUIET" = "0" ] && printf '[codex-install] %s\n' "$*" || true; }
-_logv()  { [ "$VERBOSE" = "1" ] && printf '[codex-install:dbg] %s\n' "$*" || true; }
+_logv()  { [ "$VERBOSE" = "1" ] && printf '[codex-install:dbg] %s\n' "$*" >&2 || true; }
 _warn()  { printf '[codex-install:warn] %s\n' "$*" >&2; }
 _err()   { printf '[codex-install:ERROR] %s\n' "$*" >&2; }
 _step()  { printf '[codex-install] → %s\n' "$*"; }
