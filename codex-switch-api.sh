@@ -120,6 +120,9 @@ if ! echo "$API_KEY" | grep -qE '^[A-Za-z0-9_-]+$'; then
     exit 1
 fi
 
+# 默认模型
+API_MODEL="${API_MODEL:-}"
+
 # ============================================================
 # 测试 API 连接
 # ============================================================
@@ -159,6 +162,51 @@ if [ "$TEST_ONLY" = true ]; then
 fi
 
 # ============================================================
+# 获取模型列表并选择
+# ============================================================
+header "选择模型"
+echo "正在获取可用模型列表..."
+MODELS_JSON=$(curl -s --connect-timeout 10 \
+    -H "Authorization: Bearer $API_KEY" \
+    "${BASE_URL}/models" 2>/dev/null || echo "")
+
+AVAILABLE_MODELS=()
+if [ -n "$MODELS_JSON" ]; then
+    while IFS= read -r line; do
+        [ -n "$line" ] && AVAILABLE_MODELS+=("$line")
+    done < <(echo "$MODELS_JSON" | python3 -c "
+import sys,json
+try:
+    data = json.load(sys.stdin)
+    items = data.get('data', data if isinstance(data, list) else [])
+    for m in items:
+        print(m.get('id', m))
+except: pass
+" 2>/dev/null)
+fi
+
+if [ ${#AVAILABLE_MODELS[@]} -gt 0 ]; then
+    echo "可用模型:"
+    for i in "${!AVAILABLE_MODELS[@]}"; do
+        echo "  $((i+1))) ${AVAILABLE_MODELS[$i]}"
+    done
+    echo ""
+    echo "输入编号选择模型，或直接回车使用第一个:"
+    read -rp "选择 [1]: " model_choice
+    model_choice="${model_choice:-1}"
+    if [[ "$model_choice" =~ ^[0-9]+$ ]] && [ "$model_choice" -ge 1 ] && [ "$model_choice" -le "${#AVAILABLE_MODELS[@]}" ]; then
+        API_MODEL="${AVAILABLE_MODELS[$((model_choice-1))]}"
+    else
+        API_MODEL="${AVAILABLE_MODELS[0]}"
+    fi
+    info "已选择模型: $API_MODEL"
+else
+    # 手动输入
+    read -rp "未获取到模型列表，请手动输入模型名称: " API_MODEL
+    [ -z "$API_MODEL" ] && API_MODEL="gpt-5.5"
+fi
+
+# ============================================================
 # 备份旧配置
 # ============================================================
 if [ -f "$HOME/.codex/config.toml" ]; then
@@ -178,7 +226,7 @@ cat > "$HOME/.codex/config.toml" <<CONFIG
 # 生成时间: $(date '+%Y-%m-%d %H:%M:%S')
 
 model_provider = "codex"
-model = "gpt-5.5"
+model = "${API_MODEL}"
 model_reasoning_effort = "high"
 disable_response_storage = true
 sandbox_mode = "danger-full-access"
@@ -191,7 +239,7 @@ supports_websockets = false
 env_key = "CODEX_API_KEY"
 
 [model_providers.codex.models]
-default = "gpt-5.5"
+default = "${API_MODEL}"
 
 [experimental]
 use_freeform_apply_patch = true
