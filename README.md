@@ -10,10 +10,14 @@
 # 1. 安装
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/fanxing724/codex-termux/main/codex-termux.sh)" install
 
-# 2. 配置 API（用你的换 API 脚本）
-curl -s https://你的地址/setup-codex.sh | bash -s -- --url https://你的api地址 --key sk-你的key
+# 2. 配置 API（交互式）
+bash codex-switch-api.sh
+
+# 或一键配置
+bash codex-switch-api.sh -u https://你的api地址 -k sk-你的key
 
 # 3. 启动
+source ~/.bashrc
 codex
 ```
 
@@ -71,16 +75,32 @@ bash codex-termux.sh install
 
 ### 配置 API
 
-安装完成后，用你的换 API 脚本配置：
+安装完成后，用 `codex-switch-api.sh` 配置 API：
 
 ```bash
+# 交互式配置（推荐）
+bash codex-switch-api.sh
+
 # 一键配置
-curl -s https://你的地址/setup-codex.sh | bash -s -- \
-  --url https://你的api地址 \
-  --key sk-你的key
+bash codex-switch-api.sh -u https://你的api地址 -k sk-你的key
+
+# 只测试连接
+bash codex-switch-api.sh -t -u https://你的api地址 -k sk-你的key
+
+# 查看当前配置
+bash codex-switch-api.sh -s
 ```
 
-或者手动设置环境变量：
+支持的 API 示例：
+
+| 供应商 | 地址 |
+|--------|------|
+| DeepSeek | `https://api.deepseek.com/v1` |
+| 硅基流动 | `https://api.siliconflow.cn/v1` |
+| Kimi | `https://api.moonshot.cn/v1` |
+| 自定义中转 | 你的中转站地址 |
+
+### 手动设置环境变量
 
 ```bash
 export OPENAI_BASE_URL="https://你的api地址/v1"
@@ -131,7 +151,7 @@ codex
 └── lib/codex/codex        # Codex 二进制（已修补 DNS）
 
 ~/.codex/
-└── config.toml            # Codex 配置（由换 API 脚本生成）
+└── config.toml            # Codex 配置（由 codex-switch-api.sh 生成）
 
 ~/.config/codex/
 └── resolv.conf            # DNS 解析文件
@@ -192,8 +212,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 **Q: 怎么换 API？**
 ```bash
-# 用你的换 API 脚本
-curl -s https://你的地址/setup-codex.sh | bash -s -- --url 新地址 --key 新key
+bash codex-switch-api.sh -u 新地址 -k 新key
 ```
 
 ## Acknowledgements
