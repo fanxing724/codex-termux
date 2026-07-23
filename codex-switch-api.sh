@@ -177,6 +177,9 @@ wire_api = "responses"
 supports_websockets = false
 env_key = "CODEX_API_KEY"
 
+[model_providers.codex.models]
+default = "gpt-5.5"
+
 [experimental]
 use_freeform_apply_patch = true
 use_unified_exec_tool = true
@@ -201,12 +204,13 @@ info "配置已写入: $HOME/.codex/config.toml"
 # ============================================================
 header "设置环境变量"
 
-# 当前会话
+# 当前会话立即生效
 export OPENAI_BASE_URL="$BASE_URL"
 export OPENAI_API_KEY="$API_KEY"
 export CODEX_API_KEY="$API_KEY"
+info "当前会话环境变量已生效"
 
-# 写入 shell 配置
+# 写入 shell 配置（持久化）
 detect_shell_config() {
     if [ -n "$BASH_VERSION" ]; then
         echo "$HOME/.bashrc"
@@ -224,30 +228,34 @@ detect_shell_config() {
 SHELL_CONFIG=$(detect_shell_config)
 info "检测到 Shell 配置: $SHELL_CONFIG"
 
-# 标记块
-MARKER_BEGIN="# >>> codex-api-config >>>"
-MARKER_END="# <<< codex-api-config <<<"
-
-# 如果已有标记块，替换；否则追加
-if grep -qF "$MARKER_BEGIN" "$SHELL_CONFIG" 2>/dev/null; then
-    # 替换已有块
-    awk -v begin="$MARKER_BEGIN" -v end="$MARKER_END" -v url="$BASE_URL" -v key="$API_KEY" '
-    $0 ~ begin { print; printing=1; next }
-    $0 ~ end { printing=0; print; next }
-    !printing { print }
-    ' "$SHELL_CONFIG" > "${SHELL_CONFIG}.tmp" && mv "${SHELL_CONFIG}.tmp" "$SHELL_CONFIG"
-    info "已更新 $SHELL_CONFIG 中的环境变量"
+# 用 sed 替换或追加（参考原脚本方式）
+# OPENAI_BASE_URL
+if grep -q "export OPENAI_BASE_URL=" "$SHELL_CONFIG" 2>/dev/null; then
+    sed -i "s|export OPENAI_BASE_URL=.*|export OPENAI_BASE_URL=\"$BASE_URL\"|" "$SHELL_CONFIG"
+    info "已更新 OPENAI_BASE_URL"
 else
-    cat >> "$SHELL_CONFIG" <<EOF
+    echo "" >> "$SHELL_CONFIG"
+    echo "# Codex 环境变量" >> "$SHELL_CONFIG"
+    echo "export OPENAI_BASE_URL=\"$BASE_URL\"" >> "$SHELL_CONFIG"
+    info "已写入 OPENAI_BASE_URL"
+fi
 
-${MARKER_BEGIN}
-# Codex API 配置
-export OPENAI_BASE_URL="${BASE_URL}"
-export OPENAI_API_KEY="${API_KEY}"
-export CODEX_API_KEY="${API_KEY}"
-${MARKER_END}
-EOF
-    info "已写入 $SHELL_CONFIG"
+# OPENAI_API_KEY
+if grep -q "export OPENAI_API_KEY=" "$SHELL_CONFIG" 2>/dev/null; then
+    sed -i "s|export OPENAI_API_KEY=.*|export OPENAI_API_KEY=\"$API_KEY\"|" "$SHELL_CONFIG"
+    info "已更新 OPENAI_API_KEY"
+else
+    echo "export OPENAI_API_KEY=\"$API_KEY\"" >> "$SHELL_CONFIG"
+    info "已写入 OPENAI_API_KEY"
+fi
+
+# CODEX_API_KEY
+if grep -q "export CODEX_API_KEY=" "$SHELL_CONFIG" 2>/dev/null; then
+    sed -i "s|export CODEX_API_KEY=.*|export CODEX_API_KEY=\"$API_KEY\"|" "$SHELL_CONFIG"
+    info "已更新 CODEX_API_KEY"
+else
+    echo "export CODEX_API_KEY=\"$API_KEY\"" >> "$SHELL_CONFIG"
+    info "已写入 CODEX_API_KEY"
 fi
 
 # ============================================================
@@ -261,8 +269,7 @@ echo ""
 echo "  API 地址: ${BASE_URL}"
 echo "  API Key:  ${API_KEY:0:8}...${API_KEY: -4}"
 echo ""
-echo "  启动 Codex:"
-echo "    source ${SHELL_CONFIG/$HOME/\~}"
+echo "  当前会话已生效，直接启动 Codex:"
 echo "    codex"
 echo ""
 echo "  如需切换其他 API，重新运行:"
