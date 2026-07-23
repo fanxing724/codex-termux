@@ -134,17 +134,8 @@ install_codex() {
     done
 
     # 获取版本
-    echo "获取最新版本..."
-    if [ -n "${CODEX_RELEASE_TAG:-}" ]; then
-        TAG="$CODEX_RELEASE_TAG"
-    else
-        TAG=$(curl -sL "https://api.github.com/repos/openai/codex/releases/latest" \
-            | grep -o '"tag_name":"[^"]*"' | head -1 | cut -d'"' -f4 2>/dev/null) \
-        || TAG=$(wget -q -O- "https://api.github.com/repos/openai/codex/releases/latest" \
-            | grep -o '"tag_name":"[^"]*"' | head -1 | cut -d'"' -f4 2>/dev/null) \
-        || { warn "无法获取版本，使用 rust-v0.145.0"; TAG="rust-v0.145.0"; }
-    fi
-    info "版本: $TAG"
+    echo "使用固定版本: rust-v0.137.0"
+    TAG="rust-v0.137.0"
 
     # 下载或使用本地
     TMP_DIR=$(mktemp -d)
