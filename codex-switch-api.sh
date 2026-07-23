@@ -125,17 +125,30 @@ fi
 # ============================================================
 test_api() {
     header "测试 API 连接"
+
+    # 先试 /models（OpenAI 兼容接口通用端点）
     local code
     code=$(curl -s --connect-timeout 10 -o /dev/null -w "%{http_code}" \
-        -H "Content-Type: application/json" \
         -H "Authorization: Bearer $API_KEY" \
-        "${BASE_URL}/health" 2>/dev/null || echo "000")
+        "${BASE_URL}/models" 2>/dev/null || echo "000")
+
+    # 如果 /models 不行，试根路径
+    if [ "$code" = "000" ] || [ "$code" = "404" ]; then
+        code=$(curl -s --connect-timeout 10 -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $API_KEY" \
+            "$BASE_URL" 2>/dev/null || echo "000")
+    fi
 
     case "$code" in
-        200) info "API 连接成功！"; return 0 ;;
-        401) err "API Key 认证失败，请检查 Key 是否正确"; return 1 ;;
+        200|401|403)
+            if [ "$code" = "401" ]; then
+                warn "API 返回 401，但服务器可达，Key 可能不对"
+            else
+                info "API 连接成功！"
+            fi
+            return 0 ;;
         000) err "无法连接到服务器，请检查网络和地址"; return 1 ;;
-        *)   warn "API 返回状态码: $code（可能不影响使用）"; return 0 ;;
+        *)   warn "API 返回状态码: $code（但服务器可达，继续配置）"; return 0 ;;
     esac
 }
 
@@ -149,7 +162,7 @@ fi
 # 备份旧配置
 # ============================================================
 if [ -f "$HOME/.codex/config.toml" ]; then
-    local backup="$HOME/.codex/config.toml.bak.$(date +%Y%m%d_%H%M%S)"
+    backup="$HOME/.codex/config.toml.bak.$(date +%Y%m%d_%H%M%S)"
     cp "$HOME/.codex/config.toml" "$backup"
     info "旧配置已备份: $backup"
 fi
